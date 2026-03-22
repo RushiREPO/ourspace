@@ -89,8 +89,20 @@ export default function Chat({ user, token, password, onLogout }) {
     })
     socketRef.current = socket
 
-    socket.on('connect', () => setConnected(true))
-    socket.on('disconnect', () => setConnected(false))
+    socket.on('connect', () => {
+      console.log('✅ Socket connected:', socket.id)
+      setConnected(true)
+    })
+    socket.on('disconnect', () => {
+      console.log('❌ Socket disconnected')
+      setConnected(false)
+    })
+    socket.on('connect_error', (error) => {
+      console.error('🔴 Socket connection error:', error.message)
+    })
+    socket.on('error', (error) => {
+      console.error('🔴 Socket error:', error)
+    })
 
     socket.on('message', (msg) => {
       // Decrypt message if encrypted

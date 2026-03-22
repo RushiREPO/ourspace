@@ -15,13 +15,18 @@ export default function Login({ onLogin }) {
     setLoading(true)
 
     try {
+      console.log('🔍 Attempting login to:', `${API_URL}/api/login`)
       const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
       })
 
+      console.log('✅ Response status:', res.status)
       const data = await res.json()
+      console.log('📦 Response data:', data)
+      
       if (!res.ok) {
         setError(data.error || 'Login failed')
         return
@@ -29,7 +34,8 @@ export default function Login({ onLogin }) {
 
       onLogin(data.user, data.token, password)
     } catch (err) {
-      setError('Cannot connect to server. Is it running?')
+      console.error('❌ Login error:', err)
+      setError('Cannot connect to server. Is it running? Make sure backend is on port 3001.')
     } finally {
       setLoading(false)
     }
