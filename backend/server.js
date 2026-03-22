@@ -148,6 +148,7 @@ io.on('connection', (socket) => {
       avatar: user.avatar,
       color: user.color,
       text,
+      isEncrypted: data.isEncrypted || false,
       timestamp: new Date().toISOString(),
       reaction: null
     };
@@ -163,7 +164,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_file', (data) => {
-    const { file, text } = data;
+    const { file, text, isEncrypted } = data;
     if (!file || !file.data || !file.type || !file.name) return;
 
     // Validate file type
@@ -180,6 +181,7 @@ io.on('connection', (socket) => {
       avatar: user.avatar,
       color: user.color,
       text: text || '',
+      isEncrypted: isEncrypted || false,
       file: {
         name: file.name,
         type: file.type,

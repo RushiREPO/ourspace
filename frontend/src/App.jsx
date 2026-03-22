@@ -6,6 +6,7 @@ import './App.css'
 export default function App() {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  const [password, setPassword] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,9 +19,10 @@ export default function App() {
     setLoading(false)
   }, [])
 
-  const handleLogin = (userData, authToken) => {
+  const handleLogin = (userData, authToken, pwd) => {
     setUser(userData)
     setToken(authToken)
+    setPassword(pwd)
     localStorage.setItem('couple_chat_token', authToken)
     localStorage.setItem('couple_chat_user', JSON.stringify(userData))
   }
@@ -28,6 +30,7 @@ export default function App() {
   const handleLogout = () => {
     setUser(null)
     setToken(null)
+    setPassword(null)
     localStorage.removeItem('couple_chat_token')
     localStorage.removeItem('couple_chat_user')
   }
@@ -43,7 +46,7 @@ export default function App() {
   return (
     <div className="app">
       {user && token ? (
-        <Chat user={user} token={token} onLogout={handleLogout} />
+        <Chat user={user} token={token} password={password} onLogout={handleLogout} />
       ) : (
         <Login onLogin={handleLogin} />
       )}

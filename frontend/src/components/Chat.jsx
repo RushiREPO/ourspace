@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { io } from 'socket.io-client'
+import { encryptMessage, decryptMessage, deriveKey } from '../utils/crypto'
 import './Chat.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -24,12 +25,13 @@ function formatDateLabel(iso) {
   return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
 }
 
-export default function Chat({ user, token, onLogout }) {
+export default function Chat({ user, token, password, onLogout }) {
   const [messages, setMessages] = useState([])
   const [inputText, setInputText] = useState('')
   const [typing, setTyping] = useState([])
   const [onlineUsers, setOnlineUsers] = useState([])
   const [connected, setConnected] = useState(false)
+  const [encryptionKey, setEncryptionKey] = useState(null)
   const [reactionMenu, setReactionMenu] = useState(null) // messageId
   const [partnerUser, setPartnerUser] = useState(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -49,6 +51,14 @@ export default function Chat({ user, token, onLogout }) {
   const remoteVideoRef = useRef(null)
   const fileInputRef = useRef(null)
 
+  // Derive encryption key from user ID and password
+  useEffect(() => {
+    if (user && password) {
+      const key = deriveKey(user.id, password)
+      setEncryptionKey(key)
+    }
+  }, [user, password])
+
   // Fetch message history
   useEffect(() => {
     fetch(`${API_URL}/api/messages`, {
@@ -56,10 +66,20 @@ export default function Chat({ user, token, onLogout }) {
     })
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) setMessages(data)
+        if (Array.isArray(data)) {
+          // Decrypt messages
+          const decryptedMessages = data.map(msg => {
+            if (msg.isEncrypted && encryptionKey && msg.text) {
+              const decryptedText = decryptMessage(msg.text, encryptionKey)
+              return { ...msg, text: decryptedText }
+            }
+            return msg
+          })
+          setMessages(decryptedMessages)
+        }
       })
       .catch(console.error)
-  }, [token])
+  }, [token, encryptionKey])
 
   // Connect socket
   useEffect(() => {
@@ -73,11 +93,23 @@ export default function Chat({ user, token, onLogout }) {
     socket.on('disconnect', () => setConnected(false))
 
     socket.on('message', (msg) => {
-      setMessages(prev => [...prev, msg])
+      // Decrypt message if encrypted
+      if (msg.isEncrypted && encryptionKey && msg.text) {
+        const decryptedText = decryptMessage(msg.text, encryptionKey)
+        setMessages(prev => [...prev, { ...msg, text: decryptedText }])
+      } else {
+        setMessages(prev => [...prev, msg])
+      }
     })
 
     socket.on('file_message', (msg) => {
-      setMessages(prev => [...prev, msg])
+      // Decrypt message if encrypted
+      if (msg.isEncrypted && encryptionKey && msg.text) {
+        const decryptedText = decryptMessage(msg.text, encryptionKey)
+        setMessages(prev => [...prev, { ...msg, text: decryptedText }])
+      } else {
+        setMessages(prev => [...prev, msg])
+      }
     })
 
     socket.on('typing_users', (users) => {
@@ -122,7 +154,7 @@ export default function Chat({ user, token, onLogout }) {
       socket.disconnect()
       cleanupCall()
     }
-  }, [token, user.id, localStream])
+  }, [token, user.id, localStream, encryptionKey])
 
   // Auto scroll
   useEffect(() => {
@@ -147,18 +179,23 @@ export default function Chat({ user, token, onLogout }) {
   const sendMessage = useCallback((e) => {
     e?.preventDefault()
     const text = inputText.trim()
-    if (!text && !selectedFile || !socketRef.current) return
+    if (!text && !selectedFile || !socketRef.current || !encryptionKey) return
 
     if (selectedFile) {
       sendFile()
     } else {
-      socketRef.current.emit('send_message', { text })
+      // Encrypt message before sending
+      const encryptedText = encryptMessage(text, encryptionKey)
+      socketRef.current.emit('send_message', { 
+        text: encryptedText,
+        isEncrypted: true
+      })
       setInputText('')
       clearTimeout(typingTimerRef.current)
       socketRef.current.emit('typing_stop')
       inputRef.current?.focus()
     }
-  }, [inputText, selectedFile])
+  }, [inputText, selectedFile, encryptionKey])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -212,7 +249,7 @@ export default function Chat({ user, token, onLogout }) {
 
   const sendFile = useCallback(async (e) => {
     e?.preventDefault()
-    if (!selectedFile || !socketRef.current) return
+    if (!selectedFile || !socketRef.current || !encryptionKey) return
 
     const reader = new FileReader()
     reader.onload = () => {
@@ -223,7 +260,11 @@ export default function Chat({ user, token, onLogout }) {
         data: reader.result // base64
       }
 
-      socketRef.current.emit('send_file', { file: fileData, text: inputText.trim() })
+      socketRef.current.emit('send_file', { 
+        file: fileData, 
+        text: encryptMessage(inputText.trim(), encryptionKey),
+        isEncrypted: true
+      })
       setInputText('')
       removeFile()
       clearTimeout(typingTimerRef.current)
@@ -231,7 +272,7 @@ export default function Chat({ user, token, onLogout }) {
       inputRef.current?.focus()
     }
     reader.readAsDataURL(selectedFile)
-  }, [selectedFile, inputText])
+  }, [selectedFile, inputText, encryptionKey])
 
   const sendReaction = (messageId, reaction) => {
     socketRef.current?.emit('react_message', { messageId, reaction })

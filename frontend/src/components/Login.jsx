@@ -27,7 +27,7 @@ export default function Login({ onLogin }) {
         return
       }
 
-      onLogin(data.user, data.token)
+      onLogin(data.user, data.token, password)
     } catch (err) {
       setError('Cannot connect to server. Is it running?')
     } finally {
