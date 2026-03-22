@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: couple-chat-backend
+    environment:
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost}
+      - USER1_NAME=${USER1_NAME:-Riya}
+      - USER1_PASS=${USER1_PASS:-riya123}
+      - USER2_NAME=${USER2_NAME:-Arjun}
+      - USER2_PASS=${USER2_PASS:-arjun123}
+    restart: unless-stopped
+    networks:
+      - couple-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-}
+    container_name: couple-chat-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - couple-net
+
+networks:
+  couple-net:
+    driver: bridge

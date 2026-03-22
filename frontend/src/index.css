@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-base: #0d0d14;
+  --bg-surface: #13131e;
+  --bg-elevated: #1a1a28;
+  --bg-card: #1e1e2e;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+  --text-primary: #f0eef8;
+  --text-secondary: #9b97b0;
+  --text-muted: #5a5770;
+  --accent-rose: #e879a0;
+  --accent-purple: #a78bfa;
+  --glow-rose: rgba(232,121,160,0.15);
+  --glow-purple: rgba(167,139,250,0.15);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.app {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-screen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+}
+
+.loading-heart {
+  font-size: 3rem;
+  animation: pulse 1.4s ease-in-out infinite, glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes glow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(232,121,160,0.3)); }
+  50% { filter: drop-shadow(0 0 20px rgba(232,121,160,0.6)); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
+
+button { 
+  cursor: pointer; 
+  font-family: inherit;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+input, textarea { 
+  font-family: inherit;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-rose);
+  box-shadow: 0 0 0 2px rgba(232,121,160,0.1);
+}
