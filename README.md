@@ -200,6 +200,45 @@ chat.yourdomain.com {
 
 ---
 
+## 🌐 Deploy on Netlify (Frontend) + Railway (Backend)
+
+**Netlify** is perfect for the frontend, **Railway** handles the real-time backend.
+
+### 1. Deploy Frontend on Netlify
+- Go to [netlify.com](https://netlify.com)
+- **"New site from Git"** → connect your GitHub repo
+- **Build settings**:
+  - **Base directory**: `frontend`
+  - **Build command**: `npm run build`
+  - **Publish directory**: `dist`
+- **Environment variables**:
+  ```
+  VITE_API_URL=https://your-railway-backend-url.up.railway.app
+  ```
+
+### 2. Deploy Backend on Railway
+- Go to [railway.app](https://railway.app)
+- **"New Project"** → **"Deploy from GitHub repo"**
+- Select your repo → set **Root directory** to `backend`
+- **Environment variables**:
+  ```
+  JWT_SECRET=your-long-random-secret
+  USER1_NAME=Sarojana
+  USER1_PASS=love24
+  USER2_NAME=Rushi
+  USER2_PASS=love24
+  NODE_ENV=production
+  ```
+
+### 3. Connect Frontend to Backend
+- Copy Railway backend URL
+- Update Netlify environment variable `VITE_API_URL` with Railway URL
+- Redeploy frontend on Netlify
+
+**Result**: Beautiful frontend on Netlify + powerful real-time backend on Railway! 🎉
+
+---
+
 ## Deployment on Railway.app
 
 1. New project → Deploy from GitHub repo
