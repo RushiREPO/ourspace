@@ -17,14 +17,14 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const io = new Server(server, {
   cors: {
-    origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:5174'],
+    origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
     methods: ['GET', 'POST'],
     credentials: true
   }
 });
 
 app.use(cors({
-  origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:5174'],
+  origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
   credentials: true
 }));
 app.use(express.json());
